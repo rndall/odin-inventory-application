@@ -9,8 +9,8 @@
 		"server": "node --watch --env-file=.env ./bin/www",
 		"tw": "pnpm dlx @tailwindcss/cli -i ./public/stylesheets/input.css -o ./public/stylesheets/output.css --watch",
 
-		"populate": "node db/populate.js",
-		"populate:dev": "node --env-file=.env db/populate.js"
+		"populate": "node db/populatedb.js",
+		"populate:dev": "node --env-file=.env db/populatedb.js"
 	},
 	"dependencies": {
 		"@tailwindcss/cli": "^4.1.17",
