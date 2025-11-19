@@ -1,0 +1,4 @@
+<% if (locals.errors) {%>
+  <% const error = errors.find(({ path }) => path === field); %>
+  <p style="color: #dc3545; font-size: 0.875rem;"><%= error?.msg %></p>
+<% } %>
