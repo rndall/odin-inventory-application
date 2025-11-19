@@ -69,8 +69,66 @@ async function getDeveloperById(developerId) {
 		  ON d.id = gd.developer_id
 		WHERE d.id = $1
 		GROUP BY d.id
-  `,
+    `,
 		[developerId],
+	)
+	return rows[0] || null
+}
+
+async function getAllGames() {
+	const { rows } = await pool.query(`
+    SELECT
+      ga.id,
+      ga.title,
+      COALESCE(json_agg(DISTINCT jsonb_build_object(
+        'id', ge.id,
+        'name', ge.name
+      )) FILTER (WHERE ge.id IS NOT NULL), '[]') AS genres,
+      COALESCE(json_agg(DISTINCT jsonb_build_object(
+        'id', d.id,
+        'name', d.name
+      )) FILTER (WHERE d.id IS NOT NULL), '[]') AS developers
+    FROM game AS ga
+    LEFT JOIN game_genre AS gg
+      ON ga.id = gg.game_id
+    LEFT JOIN genre AS ge
+      ON gg.genre_id = ge.id
+    LEFT JOIN game_developer AS gd
+      ON ga.id = gd.game_id
+    LEFT JOIN developer AS d
+      ON gd.developer_id = d.id
+    GROUP BY ga.id
+    ORDER BY ga.id
+  `)
+	return rows
+}
+
+async function getGameById(gameId) {
+	const { rows } = await pool.query(
+		`
+		SELECT
+      ga.*,
+      COALESCE(json_agg(DISTINCT jsonb_build_object(
+          'id', ge.id,
+          'name', ge.name
+        )) FILTER (WHERE ge.id IS NOT NULL), '[]') AS genres,
+      COALESCE(json_agg(DISTINCT jsonb_build_object(
+        'id', d.id,
+        'name', d.name
+      )) FILTER (WHERE d.id IS NOT NULL), '[]') AS developers
+    FROM game AS ga
+    LEFT JOIN game_genre AS gg
+      ON ga.id = gg.game_id
+    LEFT JOIN genre AS ge
+      ON gg.genre_id = ge.id
+    LEFT JOIN game_developer AS gd
+      ON ga.id = gd.game_id
+    LEFT JOIN developer AS d
+      ON gd.developer_id = d.id
+    WHERE ga.id = $1
+    GROUP BY ga.id
+    `,
+		[gameId],
 	)
 	return rows[0] || null
 }
@@ -80,4 +138,6 @@ export default {
 	getGenreById,
 	getAllDevelopers,
 	getDeveloperById,
+	getAllGames,
+	getGameById,
 }

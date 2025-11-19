@@ -10,6 +10,7 @@ import createError from "http-errors"
 import logger from "morgan"
 
 import developersRouter from "./routes/developers.js"
+import gamesRouter from "./routes/games.js"
 import genresRouter from "./routes/genres.js"
 import indexRouter from "./routes/index.js"
 
@@ -27,6 +28,7 @@ app.use(static_(join(__dirname, "public")))
 
 app.use("/", indexRouter)
 app.use("/developers", developersRouter)
+app.use("/games", gamesRouter)
 app.use("/genres", genresRouter)
 
 // catch 404 and forward to error handler
