@@ -9,8 +9,9 @@ import express, { json, static as static_, urlencoded } from "express"
 import createError from "http-errors"
 import logger from "morgan"
 
-import indexRouter from "./routes/index.js"
+import developersRouter from "./routes/developers.js"
 import genresRouter from "./routes/genres.js"
+import indexRouter from "./routes/index.js"
 
 const app = express()
 
@@ -25,6 +26,7 @@ app.use(cookieParser())
 app.use(static_(join(__dirname, "public")))
 
 app.use("/", indexRouter)
+app.use("/developers", developersRouter)
 app.use("/genres", genresRouter)
 
 // catch 404 and forward to error handler
