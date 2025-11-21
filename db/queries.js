@@ -39,6 +39,41 @@ async function getGenreById(genreId) {
 	return rows[0] || null
 }
 
+async function insertGenre({ name, description = null, game_ids = [] }) {
+	const client = await pool.connect()
+
+	try {
+		await client.query("BEGIN")
+
+		const { rows } = await client.query(
+			`
+	    INSERT INTO genre (name, description)
+			VALUES ($1, $2)
+			RETURNING *
+		`,
+			[name, description],
+		)
+		const genre = rows[0]
+
+		await client.query(
+			`
+         INSERT INTO game_genre (game_id, genre_id)
+         SELECT unnest($1::int[]), $2
+       `,
+			[game_ids, genre.id],
+		)
+
+		await client.query("COMMIT")
+
+		return genre
+	} catch (err) {
+		console.error(err)
+		throw err
+	} finally {
+		client.release()
+	}
+}
+
 async function getAllDevelopers() {
 	const { rows } = await pool.query(`
     SELECT
@@ -136,6 +171,7 @@ async function getGameById(gameId) {
 export default {
 	getAllGenres,
 	getGenreById,
+	insertGenre,
 	getAllDevelopers,
 	getDeveloperById,
 	getAllGames,
