@@ -1,0 +1,32 @@
+<form action="/developers" method="POST">
+  <label for="name">Name</label>
+  <input
+    type="text"
+    id="name"
+    name="name"
+    value="<%= typeof developer !== "undefined" ? developer.name : "" %>"
+  />
+  <%- include("partials/error.ejs", { field: "name" }) %>
+
+  <label for="description">Description</label>
+  <textarea
+    id="description"
+    name="description"
+  ><%= typeof developer !== "undefined" ? developer.description : "" %></textarea>
+  <%- include("partials/error.ejs", { field: "description" }) %>
+
+  <label for="games">Games</label>
+  <select id="games" name="game_ids" multiple>
+    <% for (const game of games) { %>
+      <option
+        value="<%= game.id %>"
+        <%= typeof developer !== "undefined" && developer.game_ids.includes(game.id) ? "selected" : "" %>
+      >
+        <%= game.title %>
+      </option>
+    <% } %>
+  </select>
+  <%- include("partials/error.ejs", { field: "game_ids" }) %>
+
+  <button type="submit">Save Developer</button>
+</form>
