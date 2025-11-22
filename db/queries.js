@@ -191,6 +191,50 @@ async function insertDeveloper({ name, description = null, game_ids = [] }) {
 	}
 }
 
+async function updateDeveloper(
+	developerId,
+	{ name, description = null, game_ids = [] },
+) {
+	const client = await pool.connect()
+
+	try {
+		await client.query("BEGIN")
+
+		await client.query(
+			`
+	      UPDATE developer
+				SET name = $1,
+				  description = $2
+				WHERE id = $3
+			`,
+			[name, description, developerId],
+		)
+
+		await client.query(
+			`
+        DELETE FROM game_developer
+        WHERE developer_id = $1
+      `,
+			[developerId],
+		)
+
+		await client.query(
+			`
+        INSERT INTO game_developer (game_id, developer_id)
+        SELECT unnest($1::int[]), $2
+      `,
+			[game_ids, developerId],
+		)
+
+		await client.query("COMMIT")
+	} catch (err) {
+		console.error(err)
+		throw err
+	} finally {
+		client.release()
+	}
+}
+
 async function getAllGames() {
 	const { rows } = await pool.query(`
     SELECT
@@ -308,6 +352,7 @@ export default {
 	getAllDevelopers,
 	getDeveloperById,
 	insertDeveloper,
+	updateDeveloper,
 	getAllGames,
 	getGameById,
 	insertGame,

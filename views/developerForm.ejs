@@ -1,4 +1,4 @@
-<form action="/developers" method="POST">
+<form action="<%= action %>" method="POST">
   <label for="name">Name</label>
   <input
     type="text"
@@ -20,7 +20,13 @@
     <% for (const game of games) { %>
       <option
         value="<%= game.id %>"
-        <%= typeof developer !== "undefined" && developer.game_ids.includes(game.id) ? "selected" : "" %>
+        <%=
+          typeof developer !== "undefined" &&
+          developer.game_ids &&
+          developer.game_ids.includes(game.id)
+          ? "selected"
+          : ""
+        %>
       >
         <%= game.title %>
       </option>

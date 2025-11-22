@@ -60,6 +60,7 @@ async function createDeveloperGet(_req, res) {
 		title: "Create New Developer",
 		form: "developerForm",
 		games,
+		action: "/developers",
 	})
 }
 
@@ -79,10 +80,59 @@ const createDeveloperPost = [
 				errors: errors.array(),
 				developer: { ...req.body, game_ids: newDeveloper.game_ids || [] },
 				games,
+				action: "/developers",
 			})
 		}
 
 		const { id } = await db.insertDeveloper(newDeveloper)
+		res.redirect(`/developers/${id}`)
+	},
+]
+
+async function updateDeveloperGet(req, res) {
+	const developer = await db.getDeveloperById(Number(req.params.id))
+
+	if (!developer) {
+		throw new CustomNotFoundError("Developer not found!")
+	}
+
+	const games = await db.getAllGames()
+
+	res.render("form", {
+		title: "Update Developer",
+		form: "developerForm",
+		games,
+		developer,
+		action: `/developers/${developer.id}?_method=PUT`,
+	})
+}
+
+const updateDeveloperPut = [
+	validateDeveloper,
+	async (req, res) => {
+		const { id } = req.params
+		const { name, description, game_ids } = matchedData(req)
+
+		const updatedDeveloper = {
+			name,
+			description,
+			game_ids: normalizeIds(game_ids),
+		}
+
+		const errors = validationResult(req)
+		if (!errors.isEmpty()) {
+			const games = await db.getAllGames()
+			return res.status(400).render("form", {
+				title: "Create New Developer",
+				form: "developerForm",
+				errors: errors.array(),
+				developer: { ...req.body, game_ids: updatedDeveloper.game_ids || [] },
+				games,
+				action: `/developers/${id}?_method=PUT`,
+			})
+		}
+
+		await db.updateDeveloper(id, updatedDeveloper)
 		res.redirect(`/developers/${id}`)
 	},
 ]
@@ -92,4 +142,6 @@ export {
 	getDeveloperById,
 	createDeveloperGet,
 	createDeveloperPost,
+	updateDeveloperGet,
+	updateDeveloperPut,
 }
