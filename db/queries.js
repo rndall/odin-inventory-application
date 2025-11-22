@@ -47,19 +47,20 @@ async function insertGenre({ name, description = null, game_ids = [] }) {
 
 		const { rows } = await client.query(
 			`
-	    INSERT INTO genre (name, description)
-			VALUES ($1, $2)
-			RETURNING *
-		`,
+	      INSERT INTO genre (name, description)
+				VALUES ($1, $2)
+				RETURNING *
+			`,
 			[name, description],
 		)
+
 		const genre = rows[0]
 
 		await client.query(
 			`
-         INSERT INTO game_genre (game_id, genre_id)
-         SELECT unnest($1::int[]), $2
-       `,
+        INSERT INTO game_genre (game_id, genre_id)
+        SELECT unnest($1::int[]), $2
+      `,
 			[game_ids, genre.id],
 		)
 
@@ -94,16 +95,16 @@ async function getAllDevelopers() {
 async function getDeveloperById(developerId) {
 	const { rows } = await pool.query(
 		`
-	  SELECT d.*,
-		 COALESCE(
-        ARRAY_AGG(gd.game_id) FILTER (WHERE gd.game_id IS NOT NULL),
-        '{}'
-      ) AS game_ids
-		FROM developer AS d
-		LEFT JOIN game_developer AS gd
-		  ON d.id = gd.developer_id
-		WHERE d.id = $1
-		GROUP BY d.id
+  	  SELECT d.*,
+   		  COALESCE(
+          ARRAY_AGG(gd.game_id) FILTER (WHERE gd.game_id IS NOT NULL),
+          '{}'
+        ) AS game_ids
+  		FROM developer AS d
+  		LEFT JOIN game_developer AS gd
+  		  ON d.id = gd.developer_id
+  		WHERE d.id = $1
+  		GROUP BY d.id
     `,
 		[developerId],
 	)
@@ -118,19 +119,20 @@ async function insertDeveloper({ name, description = null, game_ids = [] }) {
 
 		const { rows } = await client.query(
 			`
-	    INSERT INTO developer (name, description)
-			VALUES ($1, $2)
-			RETURNING *
-		`,
+	      INSERT INTO developer (name, description)
+				VALUES ($1, $2)
+				RETURNING *
+			`,
 			[name, description],
 		)
+
 		const developer = rows[0]
 
 		await client.query(
 			`
-         INSERT INTO game_developer (game_id, developer_id)
-         SELECT unnest($1::int[]), $2
-       `,
+        INSERT INTO game_developer (game_id, developer_id)
+        SELECT unnest($1::int[]), $2
+      `,
 			[game_ids, developer.id],
 		)
 
@@ -176,31 +178,82 @@ async function getAllGames() {
 async function getGameById(gameId) {
 	const { rows } = await pool.query(
 		`
-		SELECT
-      ga.*,
-      COALESCE(json_agg(DISTINCT jsonb_build_object(
-          'id', ge.id,
-          'name', ge.name
-        )) FILTER (WHERE ge.id IS NOT NULL), '[]') AS genres,
-      COALESCE(json_agg(DISTINCT jsonb_build_object(
-        'id', d.id,
-        'name', d.name
-      )) FILTER (WHERE d.id IS NOT NULL), '[]') AS developers
-    FROM game AS ga
-    LEFT JOIN game_genre AS gg
-      ON ga.id = gg.game_id
-    LEFT JOIN genre AS ge
-      ON gg.genre_id = ge.id
-    LEFT JOIN game_developer AS gd
-      ON ga.id = gd.game_id
-    LEFT JOIN developer AS d
-      ON gd.developer_id = d.id
-    WHERE ga.id = $1
-    GROUP BY ga.id
+  		SELECT
+        ga.*,
+        COALESCE(json_agg(DISTINCT jsonb_build_object(
+            'id', ge.id,
+            'name', ge.name
+          )) FILTER (WHERE ge.id IS NOT NULL), '[]') AS genres,
+        COALESCE(json_agg(DISTINCT jsonb_build_object(
+          'id', d.id,
+          'name', d.name
+        )) FILTER (WHERE d.id IS NOT NULL), '[]') AS developers
+      FROM game AS ga
+      LEFT JOIN game_genre AS gg
+        ON ga.id = gg.game_id
+      LEFT JOIN genre AS ge
+        ON gg.genre_id = ge.id
+      LEFT JOIN game_developer AS gd
+        ON ga.id = gd.game_id
+      LEFT JOIN developer AS d
+        ON gd.developer_id = d.id
+      WHERE ga.id = $1
+      GROUP BY ga.id
     `,
 		[gameId],
 	)
 	return rows[0] || null
+}
+
+async function insertGame({
+	title,
+	release_date = null,
+	description = null,
+	cover_image_url = null,
+	genre_ids = [],
+	developer_ids = [],
+}) {
+	const client = await pool.connect()
+
+	try {
+		await client.query("BEGIN")
+
+		const { rows } = await client.query(
+			`
+  	    INSERT INTO game (title, release_date, description, cover_image_url)
+  			VALUES ($1, $2, $3, $4)
+  			RETURNING *
+			`,
+			[title, release_date, description, cover_image_url],
+		)
+
+		const game = rows[0]
+
+		await client.query(
+			`
+        INSERT INTO game_genre (game_id, genre_id)
+        SELECT $1, unnest($2::int[])
+      `,
+			[game.id, genre_ids],
+		)
+
+		await client.query(
+			`
+        INSERT INTO game_developer (game_id, developer_id)
+        SELECT $1, unnest($2::int[])
+      `,
+			[game.id, developer_ids],
+		)
+
+		await client.query("COMMIT")
+
+		return game
+	} catch (err) {
+		console.error(err)
+		throw err
+	} finally {
+		client.release()
+	}
 }
 
 export default {
@@ -212,4 +265,5 @@ export default {
 	insertDeveloper,
 	getAllGames,
 	getGameById,
+	insertGame,
 }

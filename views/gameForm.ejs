@@ -1,0 +1,63 @@
+<form action="/games" method="POST">
+  <label for="title">Title</label>
+  <input
+    type="text"
+    id="title"
+    name="title"
+    value="<%= typeof game !== "undefined" ? game.title : "" %>"
+  />
+  <%- include("partials/error.ejs", { field: "title" }) %>
+
+  <label for="release_date">Release Date</label>
+  <input
+    type="date"
+    id="release_date"
+    name="release_date"
+    value="<%= typeof game !== "undefined" ? game.release_date : "" %>"
+  />
+  <%- include("partials/error.ejs", { field: "release_date" }) %>
+
+  <label for="cover_image_url">Cover Image (URL)</label>
+  <input
+    type="url"
+    id="cover_image_url"
+    name="cover_image_url"
+    value="<%= typeof game !== "undefined" ? game.cover_image_url : "" %>"
+  />
+  <%- include("partials/error.ejs", { field: "cover_image_url" }) %>
+
+  <label for="description">Description</label>
+  <textarea
+    id="description"
+    name="description"
+  ><%= typeof game !== "undefined" ? game.description : "" %></textarea>
+  <%- include("partials/error.ejs", { field: "description" }) %>
+
+  <label for="genres">Genres</label>
+  <select id="genres" name="genre_ids" multiple>
+    <% for (const genre of genres) { %>
+      <option
+        value="<%= genre.id %>"
+        <%= typeof game !== "undefined" && game.genre_ids.includes(genre.id) ? "selected" : "" %>
+      >
+        <%= genre.name %>
+      </option>
+    <% } %>
+  </select>
+  <%- include("partials/error.ejs", { field: "genre_ids" }) %>
+
+  <label for="developers">Developers</label>
+  <select id="developers" name="developer_ids" multiple>
+    <% for (const developer of developers) { %>
+      <option
+        value="<%= developer.id %>"
+        <%= typeof game !== "undefined" && game.developer_ids.includes(developer.id) ? "selected" : "" %>
+      >
+        <%= developer.name %>
+      </option>
+    <% } %>
+  </select>
+  <%- include("partials/error.ejs", { field: "developer_ids" }) %>
+
+  <button type="submit">Save Game</button>
+</form>

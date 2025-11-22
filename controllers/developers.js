@@ -1,6 +1,7 @@
 import { body, matchedData, validationResult } from "express-validator"
 import db from "../db/queries.js"
 import CustomNotFoundError from "../errors/CustomNotFoundError.js"
+import normalizeIds from "../utils/normalizeIds.js"
 
 const validateDeveloper = [
 	body("name")
@@ -66,14 +67,8 @@ const createDeveloperPost = [
 	validateDeveloper,
 	async (req, res) => {
 		const { name, description, game_ids } = matchedData(req)
-		const newDeveloper = { name, description, game_ids }
 
-		if (!game_ids) {
-		} else if (Array.isArray(game_ids)) {
-			newDeveloper.game_ids = game_ids.map((game_id) => Number(game_id))
-		} else {
-			newDeveloper.game_ids = [Number(game_ids)]
-		}
+		const newDeveloper = { name, description, game_ids: normalizeIds(game_ids) }
 
 		const errors = validationResult(req)
 		if (!errors.isEmpty()) {

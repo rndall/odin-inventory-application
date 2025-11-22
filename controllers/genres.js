@@ -1,6 +1,7 @@
 import { body, matchedData, validationResult } from "express-validator"
 import db from "../db/queries.js"
 import CustomNotFoundError from "../errors/CustomNotFoundError.js"
+import normalizeIds from "../utils/normalizeIds.js"
 
 const validateGenre = [
 	body("name")
@@ -62,14 +63,8 @@ const createGenrePost = [
 	validateGenre,
 	async (req, res) => {
 		const { name, description, game_ids } = matchedData(req)
-		const newGenre = { name, description, game_ids }
 
-		if (!game_ids) {
-		} else if (Array.isArray(game_ids)) {
-			newGenre.game_ids = game_ids.map((game_id) => Number(game_id))
-		} else {
-			newGenre.game_ids = [Number(game_ids)]
-		}
+		const newGenre = { name, description, game_ids: normalizeIds(game_ids) }
 
 		const errors = validationResult(req)
 		if (!errors.isEmpty()) {
