@@ -2,6 +2,7 @@ import { Router } from "express"
 import {
 	createGameGet,
 	createGamePost,
+	deleteGame,
 	getGameById,
 	getGames,
 	updateGameGet,
@@ -24,6 +25,9 @@ router.get("/:id", getGameById)
 
 /* PUT game listing. */
 router.put("/:id", updateGamePut)
+
+/* DELETE game listing. */
+router.delete("/:id", deleteGame)
 
 /* GET game update form. */
 router.get("/:id/update", updateGameGet)

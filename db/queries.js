@@ -421,6 +421,10 @@ async function updateGame(
 	}
 }
 
+async function deleteGame(gameId) {
+	await pool.query("DELETE FROM game WHERE id = $1", [gameId])
+}
+
 export default {
 	getAllGenres,
 	getGenreById,
@@ -436,4 +440,5 @@ export default {
 	getGameById,
 	insertGame,
 	updateGame,
+	deleteGame,
 }

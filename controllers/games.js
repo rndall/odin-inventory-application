@@ -1,6 +1,7 @@
 import { body, matchedData, validationResult } from "express-validator"
 import db from "../db/queries.js"
 import CustomNotFoundError from "../errors/CustomNotFoundError.js"
+import generateTable from "../utils/generateTable.js"
 import normalizeIds from "../utils/normalizeIds.js"
 
 const validateGame = [
@@ -60,7 +61,9 @@ const validateGame = [
 async function getGames(_req, res) {
 	const games = await db.getAllGames()
 	console.log("Games:", games)
-	res.json(games)
+	res.locals = generateTable({ data: games, type: "Game" })
+
+	res.render("manage", { title: "Manage Games" })
 }
 
 async function getGameById(req, res) {
@@ -208,6 +211,11 @@ const updateGamePut = [
 	},
 ]
 
+async function deleteGame(req, res) {
+	await db.deleteGame(Number(req.params.id))
+	res.redirect("/games")
+}
+
 export {
 	getGames,
 	getGameById,
@@ -215,4 +223,5 @@ export {
 	createGamePost,
 	updateGameGet,
 	updateGamePut,
+	deleteGame,
 }
