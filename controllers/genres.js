@@ -1,6 +1,7 @@
 import { body, matchedData, validationResult } from "express-validator"
 import db from "../db/queries.js"
 import CustomNotFoundError from "../errors/CustomNotFoundError.js"
+import generateTable from "../utils/generateTable.js"
 import normalizeIds from "../utils/normalizeIds.js"
 
 const validateGenre = [
@@ -37,7 +38,9 @@ const validateGenre = [
 async function getGenres(_req, res) {
 	const genres = await db.getAllGenres()
 	console.log("Genres:", genres)
-	res.json(genres)
+	res.locals = generateTable({ data: genres, type: "Genre" })
+
+	res.render("manage", { title: "Manage Genres" })
 }
 
 async function getGenreById(req, res) {
@@ -132,6 +135,11 @@ const updateGenrePut = [
 	},
 ]
 
+async function deleteGenre(req, res) {
+	await db.deleteGenre(Number(req.params.id))
+	res.redirect("/genres")
+}
+
 export {
 	getGenres,
 	getGenreById,
@@ -139,4 +147,5 @@ export {
 	createGenrePost,
 	updateGenreGet,
 	updateGenrePut,
+	deleteGenre,
 }

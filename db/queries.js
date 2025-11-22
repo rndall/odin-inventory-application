@@ -119,6 +119,10 @@ async function updateGenre(
 	}
 }
 
+async function deleteGenre(genreId) {
+	await pool.query("DELETE FROM genre WHERE id = $1", [genreId])
+}
+
 async function getAllDevelopers() {
 	const { rows } = await pool.query(`
     SELECT
@@ -418,6 +422,7 @@ export default {
 	getGenreById,
 	insertGenre,
 	updateGenre,
+	deleteGenre,
 	getAllDevelopers,
 	getDeveloperById,
 	insertDeveloper,

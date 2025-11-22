@@ -2,6 +2,7 @@ import { Router } from "express"
 import {
 	createGenreGet,
 	createGenrePost,
+	deleteGenre,
 	getGenreById,
 	getGenres,
 	updateGenreGet,
@@ -24,6 +25,9 @@ router.get("/:id", getGenreById)
 
 /* PUT genre listing. */
 router.put("/:id", updateGenrePut)
+
+/* DELETE genre listing. */
+router.delete("/:id", deleteGenre)
 
 /* GET genre update form. */
 router.get("/:id/update", updateGenreGet)
