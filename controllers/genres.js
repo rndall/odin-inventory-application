@@ -56,7 +56,12 @@ async function getGenreById(req, res) {
 async function createGenreGet(_req, res) {
 	const games = await db.getAllGames()
 
-	res.render("form", { title: "Create New Genre", form: "genreForm", games })
+	res.render("form", {
+		title: "Create New Genre",
+		form: "genreForm",
+		games,
+		action: "/genres",
+	})
 }
 
 const createGenrePost = [
@@ -75,6 +80,7 @@ const createGenrePost = [
 				errors: errors.array(),
 				genre: { ...req.body, game_ids: newGenre.game_ids || [] },
 				games,
+				action: "/genres",
 			})
 		}
 
@@ -83,4 +89,54 @@ const createGenrePost = [
 	},
 ]
 
-export { getGenres, getGenreById, createGenreGet, createGenrePost }
+async function updateGenreGet(req, res) {
+	const genre = await db.getGenreById(Number(req.params.id))
+
+	if (!genre) {
+		throw new CustomNotFoundError("Genre not found!")
+	}
+
+	const games = await db.getAllGames()
+
+	res.render("form", {
+		title: "Update Genre",
+		form: "genreForm",
+		games,
+		genre,
+		action: `/genres/${genre.id}?_method=PUT`,
+	})
+}
+
+const updateGenrePut = [
+	validateGenre,
+	async (req, res) => {
+		const { id } = req.params
+		const { name, description, game_ids } = matchedData(req)
+		const updatedGenre = { name, description, game_ids: normalizeIds(game_ids) }
+
+		const errors = validationResult(req)
+		if (!errors.isEmpty()) {
+			const games = await db.getAllGames()
+			return res.status(400).render("form", {
+				title: "Create New Genre",
+				form: "genreForm",
+				errors: errors.array(),
+				genre: { ...req.body, game_ids: updatedGenre.game_ids || [] },
+				games,
+				action: `/genres/${id}?_method=PUT`,
+			})
+		}
+
+		await db.updateGenre(id, updatedGenre)
+		res.redirect(`/genres/${id}`)
+	},
+]
+
+export {
+	getGenres,
+	getGenreById,
+	createGenreGet,
+	createGenrePost,
+	updateGenreGet,
+	updateGenrePut,
+}

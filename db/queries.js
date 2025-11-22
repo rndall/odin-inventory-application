@@ -75,6 +75,50 @@ async function insertGenre({ name, description = null, game_ids = [] }) {
 	}
 }
 
+async function updateGenre(
+	genreId,
+	{ name, description = null, game_ids = [] },
+) {
+	const client = await pool.connect()
+
+	try {
+		await client.query("BEGIN")
+
+		await client.query(
+			`
+	      UPDATE genre
+				SET name = $1,
+				  description = $2
+				WHERE id = $3
+			`,
+			[name, description, genreId],
+		)
+
+		await client.query(
+			`
+        DELETE FROM game_genre
+        WHERE genre_id = $1
+      `,
+			[genreId],
+		)
+
+		await client.query(
+			`
+        INSERT INTO game_genre (game_id, genre_id)
+        SELECT unnest($1::int[]), $2
+      `,
+			[game_ids, genreId],
+		)
+
+		await client.query("COMMIT")
+	} catch (err) {
+		console.error(err)
+		throw err
+	} finally {
+		client.release()
+	}
+}
+
 async function getAllDevelopers() {
 	const { rows } = await pool.query(`
     SELECT
@@ -260,6 +304,7 @@ export default {
 	getAllGenres,
 	getGenreById,
 	insertGenre,
+	updateGenre,
 	getAllDevelopers,
 	getDeveloperById,
 	insertDeveloper,

@@ -4,6 +4,8 @@ import {
 	createGenrePost,
 	getGenreById,
 	getGenres,
+	updateGenreGet,
+	updateGenrePut,
 } from "../controllers/genres.js"
 
 const router = Router()
@@ -19,5 +21,11 @@ router.get("/new", createGenreGet)
 
 /* GET genre listing. */
 router.get("/:id", getGenreById)
+
+/* PUT genre listing. */
+router.put("/:id", updateGenrePut)
+
+/* GET genre update form. */
+router.get("/:id/update", updateGenreGet)
 
 export default router
