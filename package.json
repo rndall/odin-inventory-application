@@ -20,6 +20,7 @@
 		"express-validator": "^7.3.0",
 		"http-errors": "~1.6.3",
 		"install": "^0.13.0",
+		"method-override": "^3.0.0",
 		"morgan": "~1.9.1",
 		"pg": "^8.16.3",
 		"tailwindcss": "^4.1.17"

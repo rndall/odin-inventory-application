@@ -7,6 +7,7 @@ const __dirname = dirname(__filename)
 import cookieParser from "cookie-parser"
 import express, { json, static as static_, urlencoded } from "express"
 import createError from "http-errors"
+import methodOverride from "method-override"
 import logger from "morgan"
 
 import developersRouter from "./routes/developers.js"
@@ -25,6 +26,8 @@ app.use(json())
 app.use(urlencoded({ extended: false }))
 app.use(cookieParser())
 app.use(static_(join(__dirname, "public")))
+
+app.use(methodOverride("_method"))
 
 app.use("/", indexRouter)
 app.use("/developers", developersRouter)
