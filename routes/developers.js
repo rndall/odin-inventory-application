@@ -2,6 +2,7 @@ import { Router } from "express"
 import {
 	createDeveloperGet,
 	createDeveloperPost,
+	deleteDeveloper,
 	getDeveloperById,
 	getDevelopers,
 	updateDeveloperGet,
@@ -24,6 +25,9 @@ router.get("/:id", getDeveloperById)
 
 /* PUT developer listing. */
 router.put("/:id", updateDeveloperPut)
+
+/* DELETE developer listing. */
+router.delete("/:id", deleteDeveloper)
 
 /* GET developer update form. */
 router.get("/:id/update", updateDeveloperGet)

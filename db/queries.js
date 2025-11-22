@@ -239,6 +239,10 @@ async function updateDeveloper(
 	}
 }
 
+async function deleteDeveloper(developerId) {
+	await pool.query("DELETE FROM developer WHERE id = $1", [developerId])
+}
+
 async function getAllGames() {
 	const { rows } = await pool.query(`
     SELECT
@@ -427,6 +431,7 @@ export default {
 	getDeveloperById,
 	insertDeveloper,
 	updateDeveloper,
+	deleteDeveloper,
 	getAllGames,
 	getGameById,
 	insertGame,

@@ -1,6 +1,7 @@
 import { body, matchedData, validationResult } from "express-validator"
 import db from "../db/queries.js"
 import CustomNotFoundError from "../errors/CustomNotFoundError.js"
+import generateTable from "../utils/generateTable.js"
 import normalizeIds from "../utils/normalizeIds.js"
 
 const validateDeveloper = [
@@ -37,7 +38,9 @@ const validateDeveloper = [
 async function getDevelopers(_req, res) {
 	const developers = await db.getAllDevelopers()
 	console.log("Developers:", developers)
-	res.json(developers)
+	res.locals = generateTable({ data: developers, type: "Developer" })
+
+	res.render("manage", { title: "Manage Developers" })
 }
 
 async function getDeveloperById(req, res) {
@@ -137,6 +140,11 @@ const updateDeveloperPut = [
 	},
 ]
 
+async function deleteDeveloper(req, res) {
+	await db.deleteDeveloper(Number(req.params.id))
+	res.redirect("/developers")
+}
+
 export {
 	getDevelopers,
 	getDeveloperById,
@@ -144,4 +152,5 @@ export {
 	createDeveloperPost,
 	updateDeveloperGet,
 	updateDeveloperPut,
+	deleteDeveloper,
 }
