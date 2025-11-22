@@ -344,6 +344,75 @@ async function insertGame({
 	}
 }
 
+async function updateGame(
+	gameId,
+	{
+		title,
+		release_date = null,
+		description = null,
+		cover_image_url = null,
+		genre_ids = [],
+		developer_ids = [],
+	},
+) {
+	const client = await pool.connect()
+
+	try {
+		await client.query("BEGIN")
+
+		await client.query(
+			`
+	      UPDATE game
+				SET title = $1,
+				  release_date = $2,
+				  description = $3,
+					cover_image_url = $4
+				WHERE id = $5
+			`,
+			[title, release_date, description, cover_image_url, gameId],
+		)
+
+		await client.query(
+			`
+        DELETE FROM game_developer
+        WHERE game_id = $1
+      `,
+			[gameId],
+		)
+
+		await client.query(
+			`
+        DELETE FROM game_genre
+        WHERE game_id = $1
+      `,
+			[gameId],
+		)
+
+		await client.query(
+			`
+        INSERT INTO game_genre (game_id, genre_id)
+        SELECT $1, unnest($2::int[])
+      `,
+			[gameId, genre_ids],
+		)
+
+		await client.query(
+			`
+        INSERT INTO game_developer (game_id, developer_id)
+        SELECT $1, unnest($2::int[])
+      `,
+			[gameId, developer_ids],
+		)
+
+		await client.query("COMMIT")
+	} catch (err) {
+		console.error(err)
+		throw err
+	} finally {
+		client.release()
+	}
+}
+
 export default {
 	getAllGenres,
 	getGenreById,
@@ -356,4 +425,5 @@ export default {
 	getAllGames,
 	getGameById,
 	insertGame,
+	updateGame,
 }

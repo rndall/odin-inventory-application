@@ -87,6 +87,7 @@ async function createGameGet(_req, res) {
 		form: "gameForm",
 		genres,
 		developers,
+		action: "/games",
 	})
 }
 
@@ -128,6 +129,7 @@ const createGamePost = [
 					genre_ids: newGame.genre_ids || [],
 					developer_ids: newGame.developer_ids || [],
 				},
+				action: "/games",
 			})
 		}
 
@@ -136,4 +138,81 @@ const createGamePost = [
 	},
 ]
 
-export { getGames, getGameById, createGameGet, createGamePost }
+async function updateGameGet(req, res) {
+	const game = await db.getGameById(Number(req.params.id))
+
+	if (!game) {
+		throw new CustomNotFoundError("Game not found!")
+	}
+
+	const [genres, developers] = await Promise.all([
+		db.getAllGenres(),
+		db.getAllDevelopers(),
+	])
+
+	res.render("form", {
+		title: "Create New Gaame",
+		form: "gameForm",
+		game,
+		genres,
+		developers,
+		action: `/games/${game.id}?_method=PUT`,
+	})
+}
+
+const updateGamePut = [
+	validateGame,
+	async (req, res) => {
+		const { id } = req.params
+		const {
+			title,
+			release_date,
+			cover_image_url,
+			description,
+			genre_ids,
+			developer_ids,
+		} = matchedData(req)
+
+		const updatedGame = {
+			title,
+			release_date,
+			cover_image_url,
+			description,
+			genre_ids: normalizeIds(genre_ids),
+			developer_ids: normalizeIds(developer_ids),
+		}
+
+		const errors = validationResult(req)
+		if (!errors.isEmpty()) {
+			const [genres, developers] = await Promise.all([
+				db.getAllGenres(),
+				db.getAllDevelopers(),
+			])
+			return res.status(400).render("form", {
+				title: "Create New Game",
+				form: "gameForm",
+				errors: errors.array(),
+				genres,
+				developers,
+				game: {
+					...req.body,
+					genre_ids: updatedGame.genre_ids || [],
+					developer_ids: updatedGame.developer_ids || [],
+				},
+				action: `/games/${id}?_method=PUT`,
+			})
+		}
+
+		await db.updateGame(id, updatedGame)
+		res.redirect(`/games/${id}`)
+	},
+]
+
+export {
+	getGames,
+	getGameById,
+	createGameGet,
+	createGamePost,
+	updateGameGet,
+	updateGamePut,
+}

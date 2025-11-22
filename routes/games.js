@@ -4,20 +4,28 @@ import {
 	createGamePost,
 	getGameById,
 	getGames,
+	updateGameGet,
+	updateGamePut,
 } from "../controllers/games.js"
 
 const router = Router()
 
-/* GET developers listing. */
+/* GET games listing. */
 router.get("/", getGames)
 
-/* POST developer listing. */
+/* POST game listing. */
 router.post("/", createGamePost)
 
-/* GET developer form. */
+/* GET game form. */
 router.get("/new", createGameGet)
 
-/* GET developer listing. */
+/* GET game listing. */
 router.get("/:id", getGameById)
+
+/* PUT game listing. */
+router.put("/:id", updateGamePut)
+
+/* GET game update form. */
+router.get("/:id/update", updateGameGet)
 
 export default router
